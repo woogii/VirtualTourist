@@ -67,7 +67,7 @@
                         <outlet property="editNoticeLabel" destination="6QV-58-xEz" id="sLy-T5-fGE"/>
                         <outlet property="mapView" destination="gxO-L5-4hw" id="V4v-C4-mC3"/>
                         <outlet property="rightBarButtonItem" destination="Qs7-Rf-jpC" id="AGo-45-Dov"/>
-                        <segue destination="clL-gt-E9u" kind="show" identifier="PhotoAlbumViewController" id="R9b-5B-pJe"/>
+                        <segue destination="clL-gt-E9u" kind="show" identifier="PhotoAlbum" id="R9b-5B-pJe"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
@@ -77,7 +77,7 @@
         <!--Photo Album View Controller-->
         <scene sceneID="9sB-h2-Inh">
             <objects>
-                <viewController id="clL-gt-E9u" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="PhotoAlbum" id="clL-gt-E9u" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="0K0-wc-rHa"/>
                         <viewControllerLayoutGuide type="bottom" id="U0V-KJ-48h"/>
@@ -109,17 +109,21 @@
                                     </collectionViewCell>
                                 </cells>
                             </collectionView>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cml-PA-UzP">
-                                <rect key="frame" x="0.0" y="533" width="320" height="35"/>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Cml-PA-UzP">
+                                <rect key="frame" x="0.0" y="520" width="320" height="48"/>
                                 <color key="backgroundColor" red="0.89760890149999994" green="0.89760890149999994" blue="0.89760890149999994" alpha="1" colorSpace="calibratedRGB"/>
                                 <state key="normal" title="New Collection"/>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstAttribute="trailingMargin" secondItem="Cml-PA-UzP" secondAttribute="trailing" constant="-20" id="Hsq-Cq-P4Q"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" id="JXG-gA-azU"/>
+                            <constraint firstItem="Cml-PA-UzP" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="Lk7-ZR-uRd"/>
                             <constraint firstItem="U0V-KJ-48h" firstAttribute="top" secondItem="VrL-9W-pEF" secondAttribute="bottom" id="UMV-A3-1Lm"/>
+                            <constraint firstItem="Cml-PA-UzP" firstAttribute="top" secondItem="gpK-PT-t6P" secondAttribute="bottom" constant="328" id="ik7-U2-peO"/>
                             <constraint firstAttribute="trailingMargin" secondItem="gpK-PT-t6P" secondAttribute="trailing" constant="-20" id="kkR-iv-f7o"/>
+                            <constraint firstItem="U0V-KJ-48h" firstAttribute="top" secondItem="Cml-PA-UzP" secondAttribute="bottom" id="mpD-Qd-CDE"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="o2H-LW-S6S"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="gpK-PT-t6P" secondAttribute="bottom" constant="-2" id="qNM-Ca-MVa"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" constant="126" id="rTi-Pb-0Bd"/>
