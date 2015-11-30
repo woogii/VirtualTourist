@@ -8,9 +8,12 @@
 
 import UIKit
 import MapKit
+import CoreData 
 
 class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
 
+    // MARK: - Properties
+    
     @IBOutlet weak var editNoticeLabel: UILabel!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var bottomInfoView: UIView!
@@ -19,6 +22,8 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     
     var isEdit:Bool = true
     var longGesture:UILongPressGestureRecognizer!
+
+    // MARK: - Life Cycle 
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,6 +42,12 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         print(self.mapView.frame.origin.y)
     }
     
+    // MARK: - Core Data Convenience 
+    lazy var sharedContext : NSManagedObjectContext = {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    } ()
+    
+    // MARK: - Action
     
     @IBAction func editButtonClicked(sender: UIBarButtonItem) {
         
@@ -73,6 +84,8 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
             
         }
     }
+
+    // MARK: - Get coordinate information
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         let touchPoint = gestureRecognizer.locationInView(mapView)
@@ -82,6 +95,8 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         
         mapView.addAnnotation(annotation)
     }
+    
+    // MARK: - MKMapViewDelegate functions
     
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
         let reuseId = "pin"
@@ -227,9 +242,7 @@ extension TravelLocationsViewController {
         
     }
     
-    func getZoomLevel() ->Double {
-    
-        
+    func getZoomLevel() -> Int {
     
         let longitudeDelta:CLLocationDegrees = self.mapView.region.span.longitudeDelta
         let mapWidthInPixels:CGFloat  = self.mapView.bounds.size.width
@@ -240,7 +253,7 @@ extension TravelLocationsViewController {
             zoomer = 0
         }
     
-        return zoomer
+        return Int(zoomer)
     }
     
     
