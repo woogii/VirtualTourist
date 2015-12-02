@@ -11,20 +11,31 @@ import CoreData
 
 class Pin : NSManagedObject {
     
-    @NSManaged var latitude : Double
-    @NSManaged var longitude : Double
-    @NSManaged var zoomLevel : Int
+    struct Keys {
+        
+        static let Latitude = "latitude"
+        static let Longitude = "longitude"
+     //   static let ZoomLevel = "zoom_level"
+        
+    }
+    
+    @NSManaged var latitude : NSNumber
+    @NSManaged var longitude : NSNumber
+    // @NSManaged var zoomLevel : Int
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }
     
-    init(context: NSManagedObjectContext) {
+    init(dictionary : [String:AnyObject], context: NSManagedObjectContext) {
         
         let entity = NSEntityDescription.entityForName("Pin", inManagedObjectContext: context)!
         
         super.init(entity: entity, insertIntoManagedObjectContext: context)
-        
+        print(dictionary)
+        latitude = dictionary[Keys.Latitude] as! Double
+        longitude = dictionary[Keys.Longitude] as! Double
+        //zoomLevel = dictionary[Keys.ZoomLevel] as! Int
     }
     
 }

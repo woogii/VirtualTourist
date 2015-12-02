@@ -19,6 +19,7 @@
 		D2018AA71C0C066900201D56 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D2018AA51C0C066900201D56 /* Model.xcdatamodeld */; };
 		D2018AA91C0C337900201D56 /* FlickrClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2018AA81C0C337900201D56 /* FlickrClient.swift */; };
 		D2018AAD1C0C760500201D56 /* Pin.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2018AAC1C0C760500201D56 /* Pin.swift */; };
+		D2EBB9DD1C0DCE9B00983BAD /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2EBB9DC1C0DCE9B00983BAD /* MapKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +58,7 @@
 		D2018AA61C0C066900201D56 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		D2018AA81C0C337900201D56 /* FlickrClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlickrClient.swift; sourceTree = "<group>"; };
 		D2018AAC1C0C760500201D56 /* Pin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pin.swift; sourceTree = "<group>"; };
+		D2EBB9DC1C0DCE9B00983BAD /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +66,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2EBB9DD1C0DCE9B00983BAD /* MapKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +90,7 @@
 		D2018A671C0AE1CA00201D56 = {
 			isa = PBXGroup;
 			children = (
+				D2EBB9DC1C0DCE9B00983BAD /* MapKit.framework */,
 				D2018A721C0AE1CA00201D56 /* VirtualTourist */,
 				D2018A871C0AE1CA00201D56 /* VirtualTouristTests */,
 				D2018A921C0AE1CA00201D56 /* VirtualTouristUITests */,
@@ -224,6 +228,11 @@
 				TargetAttributes = {
 					D2018A6F1C0AE1CA00201D56 = {
 						CreatedOnToolsVersion = 7.1;
+						SystemCapabilities = {
+							com.apple.Maps.iOS = {
+								enabled = 1;
+							};
+						};
 					};
 					D2018A831C0AE1CA00201D56 = {
 						CreatedOnToolsVersion = 7.1;
