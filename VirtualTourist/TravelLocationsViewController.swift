@@ -244,144 +244,71 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         mapView.deselectAnnotation(view.annotation, animated: true)
         
+        
+        let methodArguments:[String:String!] = [
+                "method": METHOD_NAME,
+                "api_key": API_KEY,
+                "bbox" :  createBoundingBoxString(Double((view.annotation?.coordinate.longitude)!), latitude: Double((view.annotation?.coordinate.latitude)!)),
+                "safe_search" : SAFE_SEARCH,
+                "extras": EXTRAS,
+                "format": DATA_FORMAT,
+                "nojsoncallback": NO_JSON_CALLBACK
+        ]
+            
+        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
+        
+            if let error = error {
+                self.alertViewForError(error)
+            } else {
+                
+                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
+                    
+                    if let totalPages = photoDictionary["pages"] as? Int {
+
+                        // Flickr API - will only return up the 4000 images ( 100 per page, 40 page max)
+                        let page = min(totalPages, 40)
+                        let randomPage = Int(arc4random_uniform(UInt32(page))+1)
+                        
+                        if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
+                            
+                            let photo = photoArray[randomPage] as [String:AnyObject]
+                            print(photo.count)
+                        }
+                    }
+                }
+            }
+            
+        }
+
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
         navigationController?.pushViewController(controller, animated: true)
     
     }
+    
     
     // This method allows the view controller to be notified whenever the map region changes. So that it can save the new region.
     func mapView(mapView:MKMapView, regionDidChangeAnimated animated:Bool) {
         saveMapRegion()
     }
    
+    func alertViewForError(error:NSError) {
+        let alertView = UIAlertController(title: "", message: "\(error.localizedDescription)" , preferredStyle: .Alert)
+        alertView.addAction(UIAlertAction(title: "Dismiss", style:.Default, handler: nil))
+        presentViewController(alertView, animated: true, completion: nil)
+    }
     
-//    func mapView(mapView: MKMapView, didAddAnnotationViews views : [MKAnnotationView]) {
-//  
-//        for view in views {
-//            
-//            let endFrame = view.frame
-//            
-//            view.frame = CGRectMake(view.frame.origin.x, 0.0, view.frame.size.width, view.frame.size.height)
-//            view.alpha = 0
-//            UIView.animateWithDuration(0.2, delay: 0.0, options: .CurveLinear, animations: {
-//                view.alpha = 1
-//                view.frame = endFrame
-//                
-//                }, completion: nil)
-//            
-//        }
-//        
-//    }
-    
-    
+    func createBoundingBoxString(longitude:Double, latitude:Double)->String {
+        
+        let bottom_left_lon = max(longitude - BOUNDING_BOX_HALF_WIDTH, LON_MIN)
+        
+        let bottom_left_lat = max(latitude - BOUNDING_BOX_HALF_HEIGHT, LAT_MIN)
+        
+        let top_right_lon = min(longitude + BOUNDING_BOX_HALF_WIDTH, LON_MAX)
+        
+        let top_right_lat = min(latitude + BOUNDING_BOX_HALF_HEIGHT, LAT_MAX)
+        
+        return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
+    }
+
 }
 
-extension TravelLocationsViewController {
-    
-    
-    private var MERCATOR_OFFSET: Double {
-        get {
-            return 268435456
-        }
-    }
-    private var MERCATOR_RADIUS: Double {
-        get {
-            return 85445659.44705395
-        }
-    }
-    
-    private var MAX_GOOGLE_LEVELS: Double {
-        get {
-            return 20.0
-        }
-    }
-    
-    // MARK: -  Private functions
-    private func longitudeToPixelSpaceX (longitude: Double) -> Double {
-        return round(MERCATOR_OFFSET + MERCATOR_RADIUS * longitude * M_PI / 180.0)
-    }
-    
-    private func latitudeToPixelSpaceY (latitude: Double) -> Double {
-        
-        let a = 1 + sinf(Float(latitude * M_PI) / 180.0)
-        let b = 1.0 - sinf(Float(latitude * M_PI / 180.0)) / 2.0
-        
-        return round(MERCATOR_OFFSET - MERCATOR_RADIUS * Double(logf(a / b)))
-    }
-    
-    private func pixelSpaceXToLongitude (pixelX: Double) -> Double {
-        return ((round(pixelX) - MERCATOR_OFFSET) / MERCATOR_RADIUS) * 180.0 / M_PI
-    }
-    
-    private func pixelSpaceYToLatitude (pixelY: Double) -> Double {
-        return (M_PI / 2.0 - 2.0 * atan(exp((round(pixelY) - MERCATOR_OFFSET) / MERCATOR_RADIUS))) * 180.0 / M_PI
-    }
-    
-    private func coordinateSpanWithMapView(mapView: MKMapView, centerCoordinate: CLLocationCoordinate2D, andZoomLevel zoomLevel:Int) -> MKCoordinateSpan {
-        
-        // convert center coordiate to pixel space
-        let centerPixelX = self.longitudeToPixelSpaceX(centerCoordinate.longitude)
-        let centerPixelY = self.latitudeToPixelSpaceY(centerCoordinate.latitude)
-        
-        // determine the scale value from the zoom level
-        let zoomExponent = 20 - zoomLevel
-        let zoomScale = CGFloat(pow(Double(2), Double(zoomExponent)))
-        
-        // scale the map’s size in pixel space
-        let mapSizeInPixels = mapView.bounds.size
-        let scaledMapWidth = mapSizeInPixels.width * zoomScale
-        let scaledMapHeight = mapSizeInPixels.height * zoomScale
-        
-        // figure out the position of the top-left pixel
-        let topLeftPixelX = CGFloat(centerPixelX) - (scaledMapWidth / 2)
-        let topLeftPixelY = CGFloat(centerPixelY) - (scaledMapHeight / 2)
-        
-        // find delta between left and right longitudes
-        let minLng: CLLocationDegrees = self.pixelSpaceXToLongitude(Double(topLeftPixelX))
-        let maxLng: CLLocationDegrees = self.pixelSpaceXToLongitude(Double(topLeftPixelX + scaledMapWidth))
-        let longitudeDelta: CLLocationDegrees = maxLng - minLng
-        
-        // find delta between top and bottom latitudes
-        let minLat: CLLocationDegrees = self.pixelSpaceYToLatitude(Double(topLeftPixelY))
-        let maxLat: CLLocationDegrees = self.pixelSpaceYToLatitude(Double(topLeftPixelY + scaledMapHeight))
-        let latitudeDelta: CLLocationDegrees = -1 * (maxLat - minLat)
-        
-        // create and return the lat/lng span
-        let span = MKCoordinateSpanMake(latitudeDelta, longitudeDelta)
-        
-        return span
-        
-    }
-    
-    // MARK: - Public Functions
-    
-    func setCenterCoordinate(centerCoordinate: CLLocationCoordinate2D, zoomLevel: Int, animated: Bool) {
-        
-        // clamp large numbers to 28
-        let zoom = min(zoomLevel, 28)
-        
-        // use the zoom level to compute the region
-        let span = self.coordinateSpanWithMapView(self.mapView, centerCoordinate:centerCoordinate, andZoomLevel:zoom)
-        let region = MKCoordinateRegionMake(centerCoordinate, span)
-        
-        // set the region like normal
-        self.mapView.setRegion(region, animated:animated)
-        
-    }
-    
-    func getZoomLevel() -> Int {
-    
-        let longitudeDelta:CLLocationDegrees = self.mapView.region.span.longitudeDelta
-        let mapWidthInPixels:CGFloat  = self.mapView.bounds.size.width
-        let zoomScale = (longitudeDelta * MERCATOR_RADIUS * M_PI) / Double(180.0 * mapWidthInPixels)
-        var zoomer = MAX_GOOGLE_LEVELS - log2( zoomScale )
-        
-        if ( zoomer < 0 ) {
-            zoomer = 0
-        }
-    
-        return Int(zoomer)
-    }
-    
-    
-}
