@@ -8,6 +8,7 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, MKMapViewDelegate {
 
@@ -19,7 +20,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
     
-    var pics =  [Picture]()
+    var pin: Pin!
     var longitude:Double!
     var latitude : Double!
     
@@ -28,12 +29,12 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        bottomButton.enabled = false
         
         let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(center,
             regionRadius * 2.0, regionRadius * 2.0)
-        
-        
+    
         let annotation = MKPointAnnotation()
         annotation.coordinate = center
         
@@ -64,24 +65,26 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        let methodArguments:[String:String!] = [
-            "method": METHOD_NAME,
-            "api_key": API_KEY,
-            "bbox" :  createBoundingBoxString(longitude, latitude: latitude),
-            "safe_search" : SAFE_SEARCH,
-            "extras": EXTRAS,
-            "per_page": PER_PAGE,
-            "format": DATA_FORMAT,
-            "nojsoncallback": NO_JSON_CALLBACK
-        ]
+        if pin.pictures.isEmpty {
+        
+            let methodArguments:[String:String!] = [
+                "method": METHOD_NAME,
+                "api_key": API_KEY,
+                "bbox" :  createBoundingBoxString(longitude, latitude: latitude),
+                "safe_search" : SAFE_SEARCH,
+                "extras": EXTRAS,
+                "per_page": PER_PAGE,
+                "format": DATA_FORMAT,
+                "nojsoncallback": NO_JSON_CALLBACK
+            ]
 
-        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
+            FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
             
-            if let error = error {
-                self.alertViewForError(error)
-            } else {
-                
-                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
+                if let error = error {
+                    self.alertViewForError(error)
+                } else {
+                    
+                    if let photoDictionary = JSONResult["photos"] as? NSDictionary {
                     
                     //if let totalPages = photoDictionary["pages"] as? Int {
                         
@@ -92,28 +95,41 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         
                         if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                             print("photoArray: \(photoArray.count)")
+                            
                             //let photoDictionary = photoArray[randomPage] as [String:AnyObject]
                             //let photo = photoArray[randomPage] as [String:AnyObject]
-                            let pics = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
-                                return Picture(dictionary:dictionary)
-                            }
                             
-                            print(pics.count)
-                            self.pics = pics
+                            let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                                
+                                let picture = Picture(dictionary:dictionary, context: self.sharedContext)
+                                picture.pin = self.pin
+                                return picture
+                            }
                             
                             dispatch_async(dispatch_get_main_queue()) {
                                 self.collectionView.reloadData()
-                             
+                                self.bottomButton.enabled = true
                             }
+                            
+                            CoreDataStackManager.sharedInstance().saveContext()
                             
                         }
                     //}
+                    }
                 }
             }
+            
         }
 
     }
 
+    // MARK: - Core Data Convenience
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }
+    
+    
     func createBoundingBoxString(longitude:Double, latitude:Double)->String {
         
         let bottom_left_lon = max(longitude - BOUNDING_BOX_HALF_WIDTH, LON_MIN)
@@ -138,7 +154,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     // MARK: - Delegate Methods
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return pics.count
+        return pin.pictures.count
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
@@ -150,7 +166,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         cell.imageView!.image = nil
         cell.activityIndicator.startAnimating()
         
-        let pic = pics[indexPath.row]
+        let pic = pin.pictures[indexPath.row]
         
         if pic.urlString.characters.count == 0 || pic.urlString == "" {
             cellImage = UIImage(named: "noImage")
@@ -180,8 +196,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         return cell
     }
     
-    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath:NSIndexPath)
-    {
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath:NSIndexPath) {
+        
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
+        
+        cell.imageView.backgroundColor = UIColor.lightGrayColor()
         
     }
     
@@ -204,8 +223,73 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         return pinView
         
     }
-
     
+    @IBAction func bottomBtnClicked(sender: AnyObject) {
+        
+        bottomButton.enabled = false
+        
+        let per_page = Int(PER_PAGE)!
+        
+        // A value of a page variable is estimated based on the facts that Flick return at most 4,000 images given any search query, and we set per_page parameter '21'.
+        // This value means a possibel maximum number of pages that we have.
+        
+        let page = Int(TOTAL_PAGE/per_page)
+        let randomPage = Int(arc4random_uniform(UInt32(page))+1)
+        print("randomPage:\(randomPage)")
+        
+        let methodArguments:[String:String!] = [
+            "method": METHOD_NAME,
+            "api_key": API_KEY,
+            "bbox" :  createBoundingBoxString(longitude, latitude: latitude),
+            "safe_search" : SAFE_SEARCH,
+            "extras": EXTRAS,
+            "per_page": PER_PAGE,
+            "page" :  "\(randomPage)",
+            "format": DATA_FORMAT,
+            "nojsoncallback": NO_JSON_CALLBACK
+        ]
 
+        //  delete All pictures
+        for pic in pin.pictures {
+            sharedContext.deleteObject(pic)
+        }
+        self.collectionView.reloadData()
+
+        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
+            
+            if let error = error {
+                self.alertViewForError(error)
+            } else {
+                
+                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
+                    
+                    
+                    if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
+                        print("photoArray: \(photoArray.count)")
+                        
+                        //let photoDictionary = photoArray[randomPage] as [String:AnyObject]
+                        //let photo = photoArray[randomPage] as [String:AnyObject]
+                        
+                        let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                            
+                            let picture = Picture(dictionary:dictionary, context: self.sharedContext)
+                            picture.pin = self.pin
+                            return picture
+                        }
+                        
+                        dispatch_async(dispatch_get_main_queue()) {
+                            self.collectionView.reloadData()
+                            self.bottomButton.enabled = true
+                        }
+                        
+                        CoreDataStackManager.sharedInstance().saveContext()
+                        
+                    }
+                    //}
+                }
+            }
+        }
+        
+    }
 
 }

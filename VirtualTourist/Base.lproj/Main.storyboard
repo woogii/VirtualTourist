@@ -90,14 +90,6 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="gpK-PT-t6P">
                                 <rect key="frame" x="-4" y="64" width="328" height="128"/>
                             </mapView>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hJq-3c-qGd">
-                                <rect key="frame" x="0.0" y="524" width="320" height="44"/>
-                                <items>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="5pS-Pe-2D2"/>
-                                    <barButtonItem title="New Collection" id="YqA-XK-n6s"/>
-                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="VAq-R3-qEv"/>
-                                </items>
-                            </toolbar>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="VrL-9W-pEF">
                                 <rect key="frame" x="-4" y="190" width="328" height="378"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="fok-T7-RAV">
@@ -142,17 +134,35 @@
                                     <outlet property="delegate" destination="clL-gt-E9u" id="3nO-Wq-ZpW"/>
                                 </connections>
                             </collectionView>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hJq-3c-qGd">
+                                <rect key="frame" x="0.0" y="524" width="320" height="44"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="44" id="btE-iK-qnd"/>
+                                </constraints>
+                                <items>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="5pS-Pe-2D2"/>
+                                    <barButtonItem title="New Collection" id="YqA-XK-n6s">
+                                        <connections>
+                                            <action selector="bottomBtnClicked:" destination="clL-gt-E9u" id="698-Vr-9kL"/>
+                                        </connections>
+                                    </barButtonItem>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="VAq-R3-qEv"/>
+                                </items>
+                            </toolbar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="hJq-3c-qGd" firstAttribute="bottom" secondItem="U0V-KJ-48h" secondAttribute="top" id="8VL-VY-HKo"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" id="JXG-gA-azU"/>
                             <constraint firstItem="U0V-KJ-48h" firstAttribute="top" secondItem="VrL-9W-pEF" secondAttribute="bottom" id="UMV-A3-1Lm"/>
+                            <constraint firstItem="hJq-3c-qGd" firstAttribute="centerX" secondItem="VrL-9W-pEF" secondAttribute="centerX" id="edn-J0-lh1"/>
                             <constraint firstAttribute="trailingMargin" secondItem="gpK-PT-t6P" secondAttribute="trailing" constant="-20" id="kkR-iv-f7o"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="o2H-LW-S6S"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="gpK-PT-t6P" secondAttribute="bottom" constant="-2" id="qNM-Ca-MVa"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" constant="126" id="rTi-Pb-0Bd"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="tHF-aS-Yo6"/>
                             <constraint firstAttribute="trailingMargin" secondItem="VrL-9W-pEF" secondAttribute="trailing" constant="-20" id="vOs-mM-sPL"/>
+                            <constraint firstItem="hJq-3c-qGd" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leading" id="xtX-l8-Ifq"/>
                         </constraints>
                     </view>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>

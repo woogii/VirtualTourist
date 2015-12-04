@@ -21,6 +21,7 @@ class Pin : NSManagedObject {
     
     @NSManaged var latitude : NSNumber
     @NSManaged var longitude : NSNumber
+    @NSManaged var pictures: [Picture]
     // @NSManaged var zoomLevel : Int
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {

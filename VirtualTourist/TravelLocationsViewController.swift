@@ -25,6 +25,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     var isEdit:Bool = true
     var longGesture:UILongPressGestureRecognizer!
     var pins = [Pin]()
+    var selectedPin:Pin!
     
     // MARK: - Life Cycle 
     
@@ -211,10 +212,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
             Pin.Keys.Latitude  :  Double(newCoordinates.latitude),
             Pin.Keys.Longitude :  Double(newCoordinates.longitude)
         ]
-        print(Double(newCoordinates.latitude))
-        print(Double(newCoordinates.longitude))
-        print(dictionary)
-        
+
         mapView.addAnnotation(annotation)
         _ = Pin(dictionary: dictionary, context: sharedContext)
         
@@ -248,6 +246,15 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
         controller.longitude = view.annotation?.coordinate.longitude
         controller.latitude  = view.annotation?.coordinate.latitude
+        
+        let dictionary:[String:AnyObject] = [
+            //Pin.Keys.ZoomLevel :  zoomLevel,
+            Pin.Keys.Latitude  :  Double(controller.latitude),
+            Pin.Keys.Longitude :  Double(controller.longitude)
+        ]
+        
+        controller.pin = Pin(dictionary: dictionary, context: sharedContext)
+      
         navigationController?.pushViewController(controller, animated: true)
     
     }

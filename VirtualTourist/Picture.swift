@@ -7,18 +7,26 @@
 //
 
 import Foundation
-import UIKit 
+import CoreData
 
-struct  Picture {
+class Picture : NSManagedObject {
     
-    var urlString:String
+    // var urlString:String
     
-    init(dictionary : [String:AnyObject]) {
+    @NSManaged var urlString: String
+    @NSManaged var pin: Pin?
     
-        print(dictionary)
+    override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
+        super.init(entity: entity, insertIntoManagedObjectContext: context)
+    }
+    
+    init(dictionary : [String:AnyObject], context : NSManagedObjectContext) {
+    
+        let entity = NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
+        super.init(entity:entity, insertIntoManagedObjectContext: context)
+            
+        //print(dictionary)
         urlString = dictionary["url_m"] as! String
-        
-        //zoomLevel = dictionary[Keys.ZoomLevel] as! Int
     }
 
 }
