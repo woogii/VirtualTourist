@@ -30,7 +30,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-    
+        
         longGesture = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longGesture!.minimumPressDuration = 0.5
         
@@ -83,10 +83,11 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     }
 
     override func viewWillAppear(animated: Bool) {
-        self.bottomInfoView.alpha = 0
-        self.bottomLayout.constant = -20
-        self.view.layoutIfNeeded()
-        print(self.mapView.frame.origin.y)
+        //title = "Virtual Tourist"
+        bottomInfoView.alpha = 0
+        bottomLayout.constant = -20
+        view.layoutIfNeeded()
+        print(mapView.frame.origin.y)
     }
     
     // MARK: - Computed Property
@@ -244,43 +245,9 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         mapView.deselectAnnotation(view.annotation, animated: true)
         
-        
-        let methodArguments:[String:String!] = [
-                "method": METHOD_NAME,
-                "api_key": API_KEY,
-                "bbox" :  createBoundingBoxString(Double((view.annotation?.coordinate.longitude)!), latitude: Double((view.annotation?.coordinate.latitude)!)),
-                "safe_search" : SAFE_SEARCH,
-                "extras": EXTRAS,
-                "format": DATA_FORMAT,
-                "nojsoncallback": NO_JSON_CALLBACK
-        ]
-            
-        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
-        
-            if let error = error {
-                self.alertViewForError(error)
-            } else {
-                
-                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
-                    
-                    if let totalPages = photoDictionary["pages"] as? Int {
-
-                        // Flickr API - will only return up the 4000 images ( 100 per page, 40 page max)
-                        let page = min(totalPages, 40)
-                        let randomPage = Int(arc4random_uniform(UInt32(page))+1)
-                        
-                        if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
-                            
-                            let photo = photoArray[randomPage] as [String:AnyObject]
-                            print(photo.count)
-                        }
-                    }
-                }
-            }
-            
-        }
-
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
+        controller.longitude = view.annotation?.coordinate.longitude
+        controller.latitude  = view.annotation?.coordinate.latitude
         navigationController?.pushViewController(controller, animated: true)
     
     }
@@ -291,24 +258,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         saveMapRegion()
     }
    
-    func alertViewForError(error:NSError) {
-        let alertView = UIAlertController(title: "", message: "\(error.localizedDescription)" , preferredStyle: .Alert)
-        alertView.addAction(UIAlertAction(title: "Dismiss", style:.Default, handler: nil))
-        presentViewController(alertView, animated: true, completion: nil)
-    }
     
-    func createBoundingBoxString(longitude:Double, latitude:Double)->String {
-        
-        let bottom_left_lon = max(longitude - BOUNDING_BOX_HALF_WIDTH, LON_MIN)
-        
-        let bottom_left_lat = max(latitude - BOUNDING_BOX_HALF_HEIGHT, LAT_MIN)
-        
-        let top_right_lon = min(longitude + BOUNDING_BOX_HALF_WIDTH, LON_MAX)
-        
-        let top_right_lat = min(latitude + BOUNDING_BOX_HALF_HEIGHT, LAT_MAX)
-        
-        return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
-    }
-
 }
 
