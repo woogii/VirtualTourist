@@ -36,14 +36,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         bottomButton.enabled = false
         
-        let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        
+        let center = CLLocationCoordinate2D(latitude: self.latitude, longitude: self.longitude)
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(center,
             regionRadius * 2.0, regionRadius * 2.0)
     
         let annotation = MKPointAnnotation()
         annotation.coordinate = center
         
-        //let zoomLevel = getZoomLevel()
         dispatch_async(dispatch_get_main_queue(), {
             self.miniMapView.setRegion(coordinateRegion, animated: false)
             self.miniMapView.addAnnotation(annotation)

@@ -215,7 +215,8 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         ]
 
         mapView.addAnnotation(annotation)
-        _ = Pin(dictionary: dictionary, context: sharedContext)
+        let pin = Pin(dictionary: dictionary, context: sharedContext)
+        pins.append(pin)
         
         CoreDataStackManager.sharedInstance().saveContext()
     }
@@ -245,19 +246,16 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         mapView.deselectAnnotation(view.annotation, animated: true)
         
         let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
-        controller.longitude = view.annotation?.coordinate.longitude
-        controller.latitude  = view.annotation?.coordinate.latitude
+        controller.longitude = Double((view.annotation?.coordinate.longitude)!)
+        controller.latitude  = Double((view.annotation?.coordinate.latitude)!)
         
-        let dictionary:[String:AnyObject] = [
-            //Pin.Keys.ZoomLevel :  zoomLevel,
-            Pin.Keys.Latitude  :  Double(controller.latitude),
-            Pin.Keys.Longitude :  Double(controller.longitude)
-        ]
+        for pin in pins  {
+            if ( pin.longitude == controller.longitude && pin.latitude == controller.latitude ) {
+                controller.pin = pin
+                break
+            }
+        }
         
-        controller.pin = pin
-            
-        // controller.pin = Pin(dictionary: dictionary, context: sharedContext)
-      
         navigationController?.pushViewController(controller, animated: true)
     
     }
