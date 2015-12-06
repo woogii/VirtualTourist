@@ -39,7 +39,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         
         tapGesture = UITapGestureRecognizer(target: self, action: "removeAnnotation:")
         tapGesture.numberOfTapsRequired = 1
-        tapGesture.delegate = self      // set delegation to self for using delegate method
+        tapGesture.delegate = self      // set delegation to self
         
         mapView.addGestureRecognizer(longGesture)
         mapView.addGestureRecognizer(tapGesture)
@@ -54,6 +54,31 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         
         restoreMapRegion(false)
     }
+
+    override func viewWillAppear(animated: Bool) {
+
+        bottomInfoView.alpha = 0
+        bottomLayout.constant = -20
+        view.layoutIfNeeded()
+        print(mapView.frame.origin.y)
+    }
+    
+    // MARK: - Computed Property
+    
+    var filePath : String {
+        
+        let manager = NSFileManager.defaultManager()
+        let url = manager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first!
+        
+        return url.URLByAppendingPathComponent("mapRegionArchive").path!
+    }
+    
+    // MARK: - Core Data Convenience 
+    
+    var sharedContext: NSManagedObjectContext {
+        return CoreDataStackManager.sharedInstance().managedObjectContext!
+    }
+    
     
     func restorePins() {
         
@@ -85,32 +110,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         
         // When the array is complete, we add the annotations to the map.
         self.mapView.addAnnotations(annotations)
-        
-
-    }
-
-    override func viewWillAppear(animated: Bool) {
-
-        bottomInfoView.alpha = 0
-        bottomLayout.constant = -20
-        view.layoutIfNeeded()
-        print(mapView.frame.origin.y)
-    }
-    
-    // MARK: - Computed Property
-    
-    var filePath : String {
-        
-        let manager = NSFileManager.defaultManager()
-        let url = manager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).first!
-        
-        return url.URLByAppendingPathComponent("mapRegionArchive").path!
-    }
-    
-    // MARK: - Core Data Convenience 
-    
-    var sharedContext: NSManagedObjectContext {
-        return CoreDataStackManager.sharedInstance().managedObjectContext!
     }
     
     func fetchAllPins()->[Pin] {
@@ -200,12 +199,14 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
 
     // MARK: - Gesture actions
     
+    
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         
         if ( gestureRecognizer.state == UIGestureRecognizerState.Ended) {
             return
         }
         
+        // Get a coordinate of long holded point on map
         let touchPoint = gestureRecognizer.locationInView(mapView)
         let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
         let annotation = MKPointAnnotation()
@@ -229,14 +230,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             return
         }
         
-//        let annotation = MKPointAnnotation()
-//        annotation.coordinate.longitude = self.longitude
-//        annotation.coordinate.latitude = self.latitude
-//        
-//      
-//        mapView.removeAnnotation(annotation)
-        
-
         for annotation in mapView.annotations {
         
             if annotation.coordinate.latitude == latitude && annotation.coordinate.longitude == longitude {
@@ -245,17 +238,15 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             
         }
         
+        // Find a selected pin in Pin array and delete it
         for pin in pins  {
             if ( pin.longitude == longitude && pin.latitude == latitude ) {
-                print("match")
                 pins.removeObject(pin)
                 sharedContext.deleteObject(pin)
                 CoreDataStackManager.sharedInstance().saveContext()
                 break
             }
         }
-
-        print("count : \(pins.count)")
         
     }
     
@@ -285,9 +276,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         longitude = view.annotation!.coordinate.longitude
         latitude  = view.annotation!.coordinate.latitude
         
-        print(editMode)
-        
-        if (!editMode) {
+        if (!editMode) {        // if the app is not in editing mode, current view should be segued into PhotoAlbumView
             
             let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
             
@@ -302,15 +291,12 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             
             navigationController?.pushViewController(controller, animated: true)
             
-        } else {
-           
-            print(longitude)
-            print(latitude)
+        } else {                // if the app is in editing mode, the selected pin should be removed
             removeAnnotation(tapGesture)
         }
     }
     
-    
+     
     // This method allows the view controller to be notified whenever the map region changes. So that it can save the new region.
     func mapView(mapView:MKMapView, regionDidChangeAnimated animated:Bool) {
         saveMapRegion()
@@ -320,20 +306,23 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
     
     func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
         if (editMode){
-            return true     // only allow tap gesture when the application is in editing mode
+            return true     // Tap gesture is only available when the app is in editing mode
         } else {
+            // Tap gesture is not available in this case. Therefore, instead of action method getting called, 
+            // didSelectAnnotationView gets invoked
             return false
+            
         }
         
     }
 }
 
+// This extension enables Array type to delete its element by value
 extension RangeReplaceableCollectionType where Generator.Element : Equatable {
     
     // Remove first collection element that is equal to the given `object`:
     mutating func removeObject(object : Generator.Element) {
         if let index = self.indexOf(object) {
-            print("index :\(index)")
             self.removeAtIndex(index)
         }
     }

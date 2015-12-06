@@ -242,9 +242,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         }
         
     }
-    
-    
-    
+
     func deleteAllPictures() {
         //  delete All pictures
         for pic in pin.pictures {
