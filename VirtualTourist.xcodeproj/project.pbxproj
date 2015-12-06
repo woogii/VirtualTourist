@@ -119,6 +119,7 @@
 			children = (
 				D2018A731C0AE1CA00201D56 /* AppDelegate.swift */,
 				D2018AA81C0C337900201D56 /* FlickrClient.swift */,
+				D23749631C147ADC00368DE2 /* ImageCache.swift */,
 				D20C51D31C100C4700F3C6D8 /* Controller */,
 				D2018A7A1C0AE1CA00201D56 /* Assets.xcassets */,
 				D2018AAB1C0C75DB00201D56 /* Model */,
@@ -172,7 +173,6 @@
 			children = (
 				D2018AA31C0B443B00201D56 /* PhotoAlbumViewController.swift */,
 				D2018A751C0AE1CA00201D56 /* TravelLocationsViewController.swift */,
-				D23749631C147ADC00368DE2 /* ImageCache.swift */,
 			);
 			name = Controller;
 			sourceTree = "<group>";

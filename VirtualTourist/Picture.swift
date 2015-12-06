@@ -6,12 +6,18 @@
 //  Copyright © 2015년 wook2. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import CoreData
 
 class Picture : NSManagedObject {
 
-    @NSManaged var urlString: String
+    struct Keys {
+        //static let UrlString = "url_string"
+        static let imagePath = "url_m"
+    }
+
+    //@NSManaged var urlString: String
+    @NSManaged var imagePath: String?
     @NSManaged var pin: Pin?
     
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
@@ -22,9 +28,22 @@ class Picture : NSManagedObject {
     
         let entity = NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
         super.init(entity:entity, insertIntoManagedObjectContext: context)
-        
-        urlString = dictionary["url_m"] as! String
+                
+        //urlString = dictionary[Keys.UrlString] as! String
+        imagePath = dictionary[Keys.imagePath] as? String
     }
+    
+    var pinnedImage: UIImage? {
+        
+        get {
+            return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+        }
+        
+        set {
+            FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: imagePath!)
+        }
+    }
+
 
 }
 

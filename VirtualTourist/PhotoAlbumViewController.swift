@@ -93,9 +93,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                             print("photoArray: \(photoArray.count)")
                             
-                            //let photoDictionary = photoArray[randomPage] as [String:AnyObject]
-                            //let photo = photoArray[randomPage] as [String:AnyObject]
-                            
                             let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
                                 
                                 let picture = Picture(dictionary:dictionary, context: self.sharedContext)
@@ -157,9 +154,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
 
-        
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(identifier, forIndexPath: indexPath) as! PhotoCell
-        var cellImage = UIImage(named: "placeholder")
+        var pinnedImage = UIImage(named: "placeholder")
 
         cell.imageView!.image = nil
         cell.overlayView.hidden = true
@@ -167,16 +163,30 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         let pic = pin.pictures[indexPath.row]
         
-        if pic.urlString.characters.count == 0 || pic.urlString == "" {
-            cellImage = UIImage(named: "noImage")
+        if pic.imagePath == nil || pic.imagePath == "" {
+            print("no image path")
+            pinnedImage = UIImage(named: "noImage")
             cell.activityIndicator.stopAnimating()
-        } else {
-            
-            let task = FlickrClient.sharedInstance().taskForImage(pic.urlString) { data, error in
+          
+        } else if  pic.pinnedImage != nil {
+            print("images exist")
+            pinnedImage = pic.pinnedImage
+            cell.activityIndicator.stopAnimating()
+        }
+        else {
+            print("image paths exists")
+            let task = FlickrClient.sharedInstance().taskForImage(pic.imagePath!) { data, error in
+                
+                if let error = error {
+                    print("Poster download error: \(error.localizedDescription)")
+                }
                 
                 if let data = data {
                     
                     let image = UIImage(data:data)
+                    
+                    // update the model, so that the information gets cashed
+                    pic.pinnedImage = image
                     
                     dispatch_async(dispatch_get_main_queue()) {
                         cell.imageView!.image = image
@@ -187,8 +197,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             cell.taskToCancelifCellIsReused = task
         }
         
-        cell.imageView!.image = cellImage
-    
+        cell.imageView!.image = pinnedImage
+        
+        
         return cell
     }
     
