@@ -10,9 +10,7 @@ import Foundation
 import CoreData
 
 class Picture : NSManagedObject {
-    
-    // var urlString:String
-    
+
     @NSManaged var urlString: String
     @NSManaged var pin: Pin?
     
@@ -24,8 +22,7 @@ class Picture : NSManagedObject {
     
         let entity = NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
         super.init(entity:entity, insertIntoManagedObjectContext: context)
-            
-        //print(dictionary)
+        
         urlString = dictionary["url_m"] as! String
     }
 

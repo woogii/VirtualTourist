@@ -41,9 +41,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         pins = fetchAllPins()
         
         if pins.count != 0 {
-
             restorePins()
-            
         }
         
         restoreMapRegion(false)
@@ -168,7 +166,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done" ,style:.Done, target: self, action: "editButtonClicked:")
             
             //bottomInfoView.hidden = false
-
             
             UIView.animateWithDuration(0.5, delay: 0.0, options: [], animations: {
                
@@ -199,6 +196,10 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     // MARK: - Get coordinate information
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
+        
+        if ( gestureRecognizer.state == UIGestureRecognizerState.Ended) {
+            return
+        }
         
         let touchPoint = gestureRecognizer.locationInView(mapView)
         let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
@@ -253,7 +254,9 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
             Pin.Keys.Longitude :  Double(controller.longitude)
         ]
         
-        controller.pin = Pin(dictionary: dictionary, context: sharedContext)
+        controller.pin = pin
+            
+        // controller.pin = Pin(dictionary: dictionary, context: sharedContext)
       
         navigationController?.pushViewController(controller, animated: true)
     

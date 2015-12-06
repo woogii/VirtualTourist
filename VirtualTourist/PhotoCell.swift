@@ -13,6 +13,7 @@ class PhotoCell: UICollectionViewCell {
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     @IBOutlet weak var imageView: UIImageView!
     
+    @IBOutlet weak var overlayView: UIView!
     // The property uses a property observer. Any time its
     // value is set it canceles the previous NSURLSessionTask
 
@@ -24,7 +25,6 @@ class PhotoCell: UICollectionViewCell {
             }
         }
     }
-
-
     
+
 }

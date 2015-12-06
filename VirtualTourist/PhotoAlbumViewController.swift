@@ -24,6 +24,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     var longitude:Double!
     var latitude : Double!
     
+    // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
+    // used inside cellForItemAtIndexPath to lower the alpha of selected cells. You can see how the array
+    // works by searching through the code for 'selectedIndexes'
+    var selectedIndexes = [NSIndexPath]()
+    
     // MARK : - Life Cycle
     
     override func viewDidLoad() {
@@ -164,6 +169,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         var cellImage = UIImage(named: "placeholder")
 
         cell.imageView!.image = nil
+        cell.overlayView.hidden = true
         cell.activityIndicator.startAnimating()
         
         let pic = pin.pictures[indexPath.row]
@@ -184,9 +190,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         cell.activityIndicator.stopAnimating()
                     }
                 }
-            
             }
-            
             cell.taskToCancelifCellIsReused = task
         }
         
@@ -200,8 +204,22 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
         
-        cell.imageView.backgroundColor = UIColor.lightGrayColor()
-        
+
+        // The value of this property is a floating-point number in the range 0.0 to 1.0, where 0.0 represents totally transparent and 1.0 represents totally opaque. This value affects only the current view and does not affect any of its embedded subviews.
+        if let index = selectedIndexes.indexOf(indexPath) {
+            print(indexPath.row)
+            print("index is already selected")
+            selectedIndexes.removeAtIndex(index)
+            cell.overlayView.hidden = true 
+        } else {
+            print(indexPath.row)
+            print("index has not been selected")
+            selectedIndexes.append(indexPath)
+            cell.overlayView.hidden = false
+            cell.overlayView.alpha = 0.5
+        }
+    
+        updateBottomButton()
     }
     
     
@@ -226,7 +244,56 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     
     @IBAction func bottomBtnClicked(sender: AnyObject) {
         
-        bottomButton.enabled = false
+        if selectedIndexes.isEmpty {
+            deleteAllPictures()
+        } else {
+            deleteSelectedPictures()
+        }
+        
+    }
+    
+    
+    
+    func deleteAllPictures() {
+        //  delete All pictures
+        for pic in pin.pictures {
+            sharedContext.deleteObject(pic)
+        }
+        reloadPictures()
+    }
+    
+    func deleteSelectedPictures() {
+        print("delete selected pics")
+        var picturesToDelete = [Picture]()
+        
+        for indexPath in selectedIndexes {
+            picturesToDelete.append(pin.pictures[indexPath.row])
+            let pic = pin.pictures[indexPath.row]
+            pic.pin = nil
+        }
+        
+        for pic in picturesToDelete {
+            sharedContext.deleteObject(pic)
+        }
+        
+        collectionView.deleteItemsAtIndexPaths(selectedIndexes)
+        //self.collectionView?.reloadItemsAtIndexPaths(self.selectedIndexes)
+
+//        collectionView?.performBatchUpdates({
+//            // Reloads just the items at the specified index paths
+//            
+//            dispatch_async(dispatch_get_main_queue()){
+//            self.collectionView?.reloadItemsAtIndexPaths(self.selectedIndexes)
+//            print("in perform batch update")
+//            return
+//            }
+//            
+//            }, completion: nil)
+        
+        selectedIndexes = [NSIndexPath]()
+    }
+    
+    func reloadPictures() {
         
         let per_page = Int(PER_PAGE)!
         
@@ -248,13 +315,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             "format": DATA_FORMAT,
             "nojsoncallback": NO_JSON_CALLBACK
         ]
-
-        //  delete All pictures
-        for pic in pin.pictures {
-            sharedContext.deleteObject(pic)
-        }
-        self.collectionView.reloadData()
-
+        
         FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
             
             if let error = error {
@@ -289,7 +350,16 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                 }
             }
         }
+
         
+    }
+    
+    func updateBottomButton() {
+        if selectedIndexes.count > 0  {
+            bottomButton.title = "Remove Selected Pictures"
+        } else {
+            bottomButton.title = "New Collection"
+        }
     }
 
 }
