@@ -34,10 +34,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        bottomButton.enabled = false
-        
-        
-        let center = CLLocationCoordinate2D(latitude: self.latitude, longitude: self.longitude)
+        let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let coordinateRegion = MKCoordinateRegionMakeWithDistance(center,
             regionRadius * 2.0, regionRadius * 2.0)
     
@@ -70,6 +67,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
+        bottomButton.enabled = false
+
         if pin.pictures.isEmpty {
         
             let methodArguments:[String:String!] = [
@@ -91,13 +90,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     
                     if let photoDictionary = JSONResult["photos"] as? NSDictionary {
                     
-                    //if let totalPages = photoDictionary["pages"] as? Int {
-                        
-                        // Flickr API - will only return up the 4000 images ( 100 per page, 40 page max)
-                        //let page = min(totalPages, 40)
-                        //let randomPage = Int(arc4random_uniform(UInt32(page))+1)
-                        
-                        
                         if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                             print("photoArray: \(photoArray.count)")
                             
@@ -119,11 +111,13 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                             CoreDataStackManager.sharedInstance().saveContext()
                             
                         }
-                    //}
                     }
                 }
             }
             
+        } else  {
+            // if a pin already has pictures in coredata 
+            bottomButton.enabled = true 
         }
 
     }
@@ -145,7 +139,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         let top_right_lat = min(latitude + BOUNDING_BOX_HALF_HEIGHT, LAT_MAX)
         
-        print("\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)")
         return "\(bottom_left_lon),\(bottom_left_lat),\(top_right_lon),\(top_right_lat)"
     }
 
@@ -195,8 +188,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         }
         
         cell.imageView!.image = cellImage
-        //cell.activityIndicator.stopAnimating()
-        
+    
         return cell
     }
     
@@ -232,7 +224,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = false
             pinView!.pinTintColor = UIColor.redColor()
-            //pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
         }
         else {
             pinView!.annotation = annotation
@@ -328,9 +319,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                         print("photoArray: \(photoArray.count)")
                         
-                        //let photoDictionary = photoArray[randomPage] as [String:AnyObject]
-                        //let photo = photoArray[randomPage] as [String:AnyObject]
-                        
                         let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
                             
                             let picture = Picture(dictionary:dictionary, context: self.sharedContext)
@@ -346,7 +334,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         CoreDataStackManager.sharedInstance().saveContext()
                         
                     }
-                    //}
                 }
             }
         }

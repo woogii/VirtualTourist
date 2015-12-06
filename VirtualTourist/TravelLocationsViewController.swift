@@ -12,7 +12,7 @@ import CoreData
 
 
 
-class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
+class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGestureRecognizerDelegate {
 
     // MARK: - Properties
     
@@ -22,10 +22,12 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var rightBarButtonItem: UIBarButtonItem!
     @IBOutlet weak var bottomLayout: NSLayoutConstraint!
     
-    var isEdit:Bool = true
+    var editMode:Bool = false
     var longGesture:UILongPressGestureRecognizer!
+    var tapGesture:UITapGestureRecognizer!
     var pins = [Pin]()
-    var selectedPin:Pin!
+    var latitude:Double!
+    var longitude:Double!
     
     // MARK: - Life Cycle 
     
@@ -35,7 +37,13 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         longGesture = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longGesture!.minimumPressDuration = 0.5
         
+        tapGesture = UITapGestureRecognizer(target: self, action: "removeAnnotation:")
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = self      // set delegation to self for using delegate method
+        
         mapView.addGestureRecognizer(longGesture)
+        mapView.addGestureRecognizer(tapGesture)
+        
         mapView.delegate = self
         
         pins = fetchAllPins()
@@ -82,7 +90,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     }
 
     override func viewWillAppear(animated: Bool) {
-        //title = "Virtual Tourist"
+
         bottomInfoView.alpha = 0
         bottomLayout.constant = -20
         view.layoutIfNeeded()
@@ -101,9 +109,9 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     
     // MARK: - Core Data Convenience 
     
-    lazy var sharedContext : NSManagedObjectContext = {
+    var sharedContext: NSManagedObjectContext {
         return CoreDataStackManager.sharedInstance().managedObjectContext!
-    } ()
+    }
     
     func fetchAllPins()->[Pin] {
         
@@ -160,26 +168,9 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     
     @IBAction func editButtonClicked(sender: UIBarButtonItem) {
         
-        if isEdit {
+        if editMode {
             
-            isEdit = false
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done" ,style:.Done, target: self, action: "editButtonClicked:")
-            
-            //bottomInfoView.hidden = false
-            
-            UIView.animateWithDuration(0.5, delay: 0.0, options: [], animations: {
-               
-                self.bottomInfoView.alpha = 1
-                self.bottomLayout.constant = 0
-                self.view.layoutIfNeeded()
-                self.mapView.frame.origin.y -= self.bottomInfoView.frame.height
-                
-            }, completion: nil)
-            
-
-        } else {
-            
-            isEdit = true
+            editMode = false
             self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Edit", style:.Plain , target: self, action: "editButtonClicked:")
             
             UIView.animateWithDuration(0.5, delay: 0.0, options: [], animations: {
@@ -187,13 +178,27 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
                 self.bottomInfoView.alpha = 0
                 self.bottomLayout.constant = -20
                 self.view.layoutIfNeeded()
-
-            }, completion: nil)
+                
+                }, completion: nil)
+        
+        } else {
+            
+            editMode = true
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(title:"Done" ,style:.Done, target: self, action: "editButtonClicked:")
+            
+            UIView.animateWithDuration(0.5, delay: 0.0, options: [], animations: {
+                
+                self.bottomInfoView.alpha = 1
+                self.bottomLayout.constant = 0
+                self.view.layoutIfNeeded()
+                self.mapView.frame.origin.y -= self.bottomInfoView.frame.height
+                
+                }, completion: nil)
             
         }
     }
 
-    // MARK: - Get coordinate information
+    // MARK: - Gesture actions
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         
@@ -206,10 +211,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         let annotation = MKPointAnnotation()
         annotation.coordinate = newCoordinates
         
-        //let zoomLevel = getZoomLevel()
-        
         let dictionary:[String:AnyObject] = [
-            //Pin.Keys.ZoomLevel :  zoomLevel,
             Pin.Keys.Latitude  :  Double(newCoordinates.latitude),
             Pin.Keys.Longitude :  Double(newCoordinates.longitude)
         ]
@@ -219,6 +221,42 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         pins.append(pin)
         
         CoreDataStackManager.sharedInstance().saveContext()
+    }
+    
+    func removeAnnotation(gestureRecognizer:UIGestureRecognizer) {
+        
+        if ( gestureRecognizer.state == UIGestureRecognizerState.Ended) {
+            return
+        }
+        
+//        let annotation = MKPointAnnotation()
+//        annotation.coordinate.longitude = self.longitude
+//        annotation.coordinate.latitude = self.latitude
+//        
+//      
+//        mapView.removeAnnotation(annotation)
+        
+
+        for annotation in mapView.annotations {
+        
+            if annotation.coordinate.latitude == latitude && annotation.coordinate.longitude == longitude {
+                mapView.removeAnnotation(annotation)
+            }
+            
+        }
+        
+        for pin in pins  {
+            if ( pin.longitude == longitude && pin.latitude == latitude ) {
+                print("match")
+                pins.removeObject(pin)
+                sharedContext.deleteObject(pin)
+                CoreDataStackManager.sharedInstance().saveContext()
+                break
+            }
+        }
+
+        print("count : \(pins.count)")
+        
     }
     
     // MARK: - MKMapViewDelegate functions
@@ -232,7 +270,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = false
             pinView!.pinTintColor = UIColor.redColor()
-            //pinView!.rightCalloutAccessoryView = UIButton(type: .DetailDisclosure)
         }
         else {
             pinView!.annotation = annotation
@@ -245,19 +282,32 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         mapView.deselectAnnotation(view.annotation, animated: true)
         
-        let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
-        controller.longitude = Double((view.annotation?.coordinate.longitude)!)
-        controller.latitude  = Double((view.annotation?.coordinate.latitude)!)
+        longitude = view.annotation!.coordinate.longitude
+        latitude  = view.annotation!.coordinate.latitude
         
-        for pin in pins  {
-            if ( pin.longitude == controller.longitude && pin.latitude == controller.latitude ) {
-                controller.pin = pin
-                break
+        print(editMode)
+        
+        if (!editMode) {
+            
+            let controller = storyboard!.instantiateViewControllerWithIdentifier("PhotoAlbum") as! PhotoAlbumViewController
+            
+            for pin in pins  {
+                if ( pin.longitude == longitude && pin.latitude == latitude ) {
+                    controller.longitude = self.longitude
+                    controller.latitude = self.latitude
+                    controller.pin = pin
+                    break
+                }
             }
+            
+            navigationController?.pushViewController(controller, animated: true)
+            
+        } else {
+           
+            print(longitude)
+            print(latitude)
+            removeAnnotation(tapGesture)
         }
-        
-        navigationController?.pushViewController(controller, animated: true)
-    
     }
     
     
@@ -266,6 +316,27 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate {
         saveMapRegion()
     }
    
+    // MARK : - UIGestureRecognizer Delegate 
     
+    func gestureRecognizerShouldBegin(gestureRecognizer: UIGestureRecognizer) -> Bool {
+        if (editMode){
+            return true     // only allow tap gesture when the application is in editing mode
+        } else {
+            return false
+        }
+        
+    }
 }
+
+extension RangeReplaceableCollectionType where Generator.Element : Equatable {
+    
+    // Remove first collection element that is equal to the given `object`:
+    mutating func removeObject(object : Generator.Element) {
+        if let index = self.indexOf(object) {
+            print("index :\(index)")
+            self.removeAtIndex(index)
+        }
+    }
+}
+
 
