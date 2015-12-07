@@ -19,6 +19,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     @IBOutlet weak var miniMapView: MKMapView!
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var bottomButton: UIBarButtonItem!
+    @IBOutlet weak var messageLabel: UILabel!
     
     var pin: Pin!
     var longitude:Double!
@@ -46,6 +47,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             self.miniMapView.addAnnotation(annotation)
         })
 
+        messageLabel.hidden = true
     }
     
     override func viewDidLayoutSubviews() {
@@ -68,7 +70,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         super.viewWillAppear(animated)
         
         bottomButton.enabled = false
-
+        print("isEmpty : \(pin.pictures.isEmpty)")
         if pin.pictures.isEmpty {
         
             let methodArguments:[String:String!] = [
@@ -93,19 +95,32 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                         if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                             print("photoArray: \(photoArray.count)")
                             
-                            let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                            if ( photoArray.count > 0 ) {
+
+                                let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
                                 
-                                let picture = Picture(dictionary:dictionary, context: self.sharedContext)
-                                picture.pin = self.pin
-                                return picture
+                                    let picture = Picture(dictionary:dictionary, context: self.sharedContext)
+                                    picture.pin = self.pin
+                                    return picture
+                                }
+                            
+                                dispatch_async(dispatch_get_main_queue()) {
+                                    self.collectionView.reloadData()
+                                    self.bottomButton.enabled = true
+                                }
+                            
+                                CoreDataStackManager.sharedInstance().saveContext()
+                            } else {
+                                
+                                dispatch_async(dispatch_get_main_queue()) {
+                                    self.messageLabel.hidden = false
+                                    self.collectionView.backgroundColor = UIColor.whiteColor()
+                                    self.messageLabel.text = "This pin has no image"
+                                    self.bottomButton.enabled = true
+                                }
+
                             }
                             
-                            dispatch_async(dispatch_get_main_queue()) {
-                                self.collectionView.reloadData()
-                                self.bottomButton.enabled = true
-                            }
-                            
-                            CoreDataStackManager.sharedInstance().saveContext()
                             
                         }
                     }
@@ -113,7 +128,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             }
             
         } else  {
-            // if a pin already has pictures in coredata 
+            // if a pin already has pictures in CoreData 
+            print("pin is not empty")
             bottomButton.enabled = true 
         }
 
@@ -328,19 +344,29 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
                         print("photoArray: \(photoArray.count)")
                         
-                        let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                        if ( photoArray.count > 0 ) {
                             
-                            let picture = Picture(dictionary:dictionary, context: self.sharedContext)
-                            picture.pin = self.pin
-                            return picture
-                        }
+                            let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                            
+                                let picture = Picture(dictionary:dictionary, context: self.sharedContext)
+                                picture.pin = self.pin
+                                return picture
+                            }
                         
-                        dispatch_async(dispatch_get_main_queue()) {
-                            self.collectionView.reloadData()
-                            self.bottomButton.enabled = true
-                        }
+                            dispatch_async(dispatch_get_main_queue()) {
+                                self.collectionView.reloadData()
+                                self.bottomButton.enabled = true
+                            }
                         
-                        CoreDataStackManager.sharedInstance().saveContext()
+                            CoreDataStackManager.sharedInstance().saveContext()
+                        } else {
+                            dispatch_async(dispatch_get_main_queue()) {
+                                self.messageLabel.hidden = false
+                                self.collectionView.backgroundColor = UIColor.whiteColor()
+                                self.messageLabel.text = "This pin has no image"
+                                self.bottomButton.enabled = true
+                            }
+                        }
                         
                     }
                 }

@@ -12,7 +12,6 @@ import CoreData
 class Picture : NSManagedObject {
 
     struct Keys {
-        //static let UrlString = "url_string"
         static let imagePath = "url_m"
     }
 

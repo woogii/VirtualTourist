@@ -139,6 +139,12 @@
                                     <outlet property="delegate" destination="clL-gt-E9u" id="3nO-Wq-ZpW"/>
                                 </connections>
                             </collectionView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YiH-vX-g0E">
+                                <rect key="frame" x="60" y="287" width="210" height="67"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                             <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="hJq-3c-qGd">
                                 <rect key="frame" x="0.0" y="524" width="320" height="44"/>
                                 <constraints>
@@ -157,12 +163,16 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="YiH-vX-g0E" firstAttribute="top" secondItem="gpK-PT-t6P" secondAttribute="bottom" constant="95" id="6fZ-EX-GrL"/>
                             <constraint firstItem="hJq-3c-qGd" firstAttribute="bottom" secondItem="U0V-KJ-48h" secondAttribute="top" id="8VL-VY-HKo"/>
+                            <constraint firstItem="YiH-vX-g0E" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="44" id="JSc-vw-3ue"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" id="JXG-gA-azU"/>
                             <constraint firstItem="U0V-KJ-48h" firstAttribute="top" secondItem="VrL-9W-pEF" secondAttribute="bottom" id="UMV-A3-1Lm"/>
                             <constraint firstItem="hJq-3c-qGd" firstAttribute="centerX" secondItem="VrL-9W-pEF" secondAttribute="centerX" id="edn-J0-lh1"/>
                             <constraint firstAttribute="trailingMargin" secondItem="gpK-PT-t6P" secondAttribute="trailing" constant="-20" id="kkR-iv-f7o"/>
                             <constraint firstItem="gpK-PT-t6P" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="o2H-LW-S6S"/>
+                            <constraint firstItem="hJq-3c-qGd" firstAttribute="top" secondItem="YiH-vX-g0E" secondAttribute="bottom" constant="170" id="qB6-Eo-vdN"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="YiH-vX-g0E" secondAttribute="trailing" constant="34" id="qFE-MH-x1E"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="gpK-PT-t6P" secondAttribute="bottom" constant="-2" id="qNM-Ca-MVa"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="top" secondItem="0K0-wc-rHa" secondAttribute="bottom" constant="126" id="rTi-Pb-0Bd"/>
                             <constraint firstItem="VrL-9W-pEF" firstAttribute="leading" secondItem="V6h-jT-v8Z" secondAttribute="leadingMargin" constant="-20" id="tHF-aS-Yo6"/>
@@ -174,6 +184,7 @@
                     <connections>
                         <outlet property="bottomButton" destination="YqA-XK-n6s" id="HRb-k7-BNS"/>
                         <outlet property="collectionView" destination="VrL-9W-pEF" id="Rg3-9Y-mT3"/>
+                        <outlet property="messageLabel" destination="YiH-vX-g0E" id="Is7-TX-jPl"/>
                         <outlet property="miniMapView" destination="gpK-PT-t6P" id="0ge-3f-14h"/>
                     </connections>
                 </viewController>
