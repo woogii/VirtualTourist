@@ -73,12 +73,26 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         return url.URLByAppendingPathComponent("mapRegionArchive").path!
     }
     
-    // MARK: - Core Data Convenience 
+    // MARK : - Core Data Convenience
     
     var sharedContext: NSManagedObjectContext {
         return CoreDataStackManager.sharedInstance().managedObjectContext!
     }
     
+    
+    // MARK : - Fetch and Restore Pins
+    
+    func fetchAllPins()->[Pin] {
+        
+        let fetchRequest = NSFetchRequest(entityName: "Pin")
+        
+        do {
+            return try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
+        } catch let error as NSError {
+            print("\(error.localizedDescription)")
+            return [Pin]()
+        }
+    }
     
     func restorePins() {
         
@@ -91,7 +105,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         // used to create custom structs. Perhaps StudentLocation structs.
         
         for pin in pins {
-            
+        
             // Notice that the float values are being used to create CLLocationDegree values.
             // This is a version of the Double type.
             let lat = CLLocationDegrees(pin.latitude as Double)
@@ -106,25 +120,25 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             
             // Finally we place the annotation in an array of annotations.
             annotations.append(annotation)
+            
+//            if pin.pictures.count > 0 {
+//                
+//                for pic in pin.pictures {
+//                    print(pic.imagePath)
+//                    if pic.pinnedImage != nil {
+//                        print("images exist in travel view")
+//                    }
+//                }
+//            }
         }
+    
         
         // When the array is complete, we add the annotations to the map.
         self.mapView.addAnnotations(annotations)
     }
     
-    func fetchAllPins()->[Pin] {
-        
-        let fetchRequest = NSFetchRequest(entityName: "Pin")
-        
-        do {
-            return try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
-        } catch let error as NSError {
-            print("\(error.localizedDescription)")
-            return [Pin]()
-        }
-    }
     
-    // MARK : - Persist map coordinate
+    // MARK : - Save and Restore Pin coordinate for Persistence
     
     func saveMapRegion() {
         
@@ -197,8 +211,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         }
     }
 
-    // MARK: - Gesture actions
-    
+    // MARK: - Add and Remove Annotations
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
         
@@ -317,7 +330,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
     }
 }
 
-// This extension enables Array type to delete its element by value
+// This extension allows Array type to delete its element by value
 extension RangeReplaceableCollectionType where Generator.Element : Equatable {
     
     // Remove first collection element that is equal to the given `object`:
