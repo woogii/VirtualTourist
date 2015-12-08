@@ -35,11 +35,17 @@ class Picture : NSManagedObject {
     var pinnedImage: UIImage? {
         
         get {
-            return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+            let url = NSURL(fileURLWithPath: imagePath!)
+            let fileName = url.lastPathComponent
+            return FlickrClient.Caches.imageCache.imageWithIdentifier(fileName!)
+            // return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
         }
         
         set {
-            FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: imagePath!)
+            let url = NSURL(fileURLWithPath: imagePath!)
+            let fileName = url.lastPathComponent
+            FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
+            //FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: imagePath!)
         }
     }
 

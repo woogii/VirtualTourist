@@ -34,6 +34,32 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        configureGestureAndMap()
+        
+        pins = fetchAllPins()
+        
+        // if there are pins on the map, restoring them
+        if pins.count != 0 {
+            restorePins()
+        }
+        
+        // restore a zoom level and a center coordinate
+        restoreMapRegion(false)
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+
+        bottomInfoView.alpha = 0
+        bottomLayout.constant = -20
+        view.layoutIfNeeded()
+        print(mapView.frame.origin.y)
+    }
+    
+    
+    // MARK: Gesture and MapView Setting
+    
+    func configureGestureAndMap() {
+        
         longGesture = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longGesture!.minimumPressDuration = 0.5
         
@@ -43,24 +69,8 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         
         mapView.addGestureRecognizer(longGesture)
         mapView.addGestureRecognizer(tapGesture)
-        
+
         mapView.delegate = self
-        
-        pins = fetchAllPins()
-        
-        if pins.count != 0 {
-            restorePins()
-        }
-        
-        restoreMapRegion(false)
-    }
-
-    override func viewWillAppear(animated: Bool) {
-
-        bottomInfoView.alpha = 0
-        bottomLayout.constant = -20
-        view.layoutIfNeeded()
-        print(mapView.frame.origin.y)
     }
     
     // MARK: - Computed Property
@@ -121,15 +131,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             // Finally we place the annotation in an array of annotations.
             annotations.append(annotation)
             
-//            if pin.pictures.count > 0 {
-//                
-//                for pic in pin.pictures {
-//                    print(pic.imagePath)
-//                    if pic.pinnedImage != nil {
-//                        print("images exist in travel view")
-//                    }
-//                }
-//            }
         }
     
         
@@ -324,7 +325,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
             // Tap gesture is not available in this case. Therefore, instead of action method getting called, 
             // didSelectAnnotationView gets invoked
             return false
-            
         }
         
     }

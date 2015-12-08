@@ -85,7 +85,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         super.viewWillAppear(animated)
         
         bottomButton.enabled = false
-        print("isEmpty : \(pin.pictures.isEmpty)")
+        
         if pin.pictures.isEmpty {
         
             let methodArguments:[String:String!] = [
@@ -108,7 +108,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     if let photoDictionary = JSONResult["photos"] as? NSDictionary {
                     
                         if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
-                            print("photoArray: \(photoArray.count)")
                             
                             if ( photoArray.count > 0 ) {
 
@@ -120,11 +119,8 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                                 }
                                 
                                 dispatch_async(dispatch_get_main_queue()) {
-                                    // self.collectionView.reloadData()
                                     self.bottomButton.enabled = true
                                 }
-                            
-                                // CoreDataStackManager.sharedInstance().saveContext()
                             } else {
                                 
                                 dispatch_async(dispatch_get_main_queue()) {
@@ -144,7 +140,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             
         } else  {
             // if a pin already has pictures in CoreData 
-            print("pin is not empty")
             bottomButton.enabled = true 
         }
 
@@ -160,13 +155,11 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         // Fetch requests contain at least one sort descriptor to order the results
         fetchRequest.sortDescriptors = []
-        fetchRequest.predicate = NSPredicate(format: "pin == %@", self.pin);
+        fetchRequest.predicate = NSPredicate(format: "pin == %@", self.pin)
     
         // NSFetchedResultsController uses the key path to split the results into sections. Passing 'nil' indicates that the controller should generate a 
         // single section. Using a cache can avoid the overhead of computing the section and index information. Passing 'nil' in cacheName prevents caching.
         let fetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: self.sharedContext, sectionNameKeyPath: nil, cacheName: nil)
-        
-        // fetchedResultController.delegate = self
         
         return fetchedResultController
     }()
@@ -268,18 +261,45 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         // return pin.pictures.count
         let sectionInfo  = self.fetchedResultsController.sections![section] 
         
-        print("number Of Cells: \(sectionInfo.numberOfObjects)")
+        // print("number Of Cells: \(sectionInfo.numberOfObjects)")
         return sectionInfo.numberOfObjects
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier(identifier, forIndexPath: indexPath) as! PhotoCell
-        // let pic = pin.pictures[indexPath.row]
+    
+        configureCell(cell, atIndexPath: indexPath)
+        return cell
+    }
+    
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath:NSIndexPath) {
+        
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
+        
+        
+        if let index = selectedIndexes.indexOf(indexPath) {
+            selectedIndexes.removeAtIndex(index)
+            cell.overlayView.hidden = true 
+        } else {
+            print(indexPath.row)
+            selectedIndexes.append(indexPath)
+            cell.overlayView.hidden = false
+            // The value of this property is a floating-point number in the range 0.0 to 1.0, where 0.0 represents totally transparent and 1.0 represents totally opaque. This value affects only the current view and does not affect any of its embedded subviews.
+            cell.overlayView.alpha = 0.5
+        }
+    
+        updateBottomButton()
+    }
+    
+    // MARK : - Configure Cell 
+    
+    func configureCell(cell: PhotoCell , atIndexPath indexPath : NSIndexPath) {
+        
         let pic = fetchedResultsController.objectAtIndexPath(indexPath) as! Picture
-
+        
         var pinnedImage = UIImage(named: "placeholder")
-
+        
         cell.imageView!.image = nil
         cell.overlayView.hidden = true
         cell.activityIndicator.startAnimating()
@@ -289,7 +309,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             print("no image path")
             pinnedImage = UIImage(named: "noImage")
             cell.activityIndicator.stopAnimating()
-          
+            
         } else if  pic.pinnedImage != nil {
             print("images exist")
             pinnedImage = pic.pinnedImage
@@ -297,7 +317,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         }
         else {
             print("paths exists but no images")
-            
             let task = FlickrClient.sharedInstance().taskForImage(pic.imagePath!) { data, error in
                 
                 if let error = error {
@@ -321,30 +340,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         }
         
         cell.imageView!.image = pinnedImage
-        
-        
-        return cell
     }
-    
-    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath:NSIndexPath) {
-        
-        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCell
-        
-        
-        if let index = selectedIndexes.indexOf(indexPath) {
-            selectedIndexes.removeAtIndex(index)
-            cell.overlayView.hidden = true 
-        } else {
-            print(indexPath.row)
-            selectedIndexes.append(indexPath)
-            cell.overlayView.hidden = false
-            // The value of this property is a floating-point number in the range 0.0 to 1.0, where 0.0 represents totally transparent and 1.0 represents totally opaque. This value affects only the current view and does not affect any of its embedded subviews.
-            cell.overlayView.alpha = 0.5
-        }
-    
-        updateBottomButton()
-    }
-    
     
     // MARK: - MKMapViewDelegate function
 
@@ -381,11 +377,6 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     // MARK: - Delete Pictures 
     
     func deleteAllPictures() {
-//        delete All pictures
-        
-//        for pic in pin.pictures {
-//            sharedContext.deleteObject(pic)
-//        }
         for pic in fetchedResultsController.fetchedObjects as! [Picture] {
             sharedContext.deleteObject(pic)
         }
@@ -408,20 +399,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         }
         
         CoreDataStackManager.sharedInstance().saveContext()
-//        for indexPath in selectedIndexes {
-//            picturesToDelete.append(pin.pictures[indexPath.row])
-//            let pic = pin.pictures[indexPath.row]
-//            pic.pin = nil
-//        }
-        
-//        for pic in picturesToDelete {
-//            sharedContext.deleteObject(pic)
-//        }
-        
-//        collectionView.deleteItemsAtIndexPaths(selectedIndexes)
-
         
         selectedIndexes = [NSIndexPath]()
+        updateBottomButton()
     }
     
     // MARK : - Reload Pictures
