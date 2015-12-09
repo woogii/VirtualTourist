@@ -28,6 +28,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
     var pins = [Pin]()
     var latitude:Double!
     var longitude:Double!
+    var droppedPin:MKPointAnnotation!
     
     // MARK: - Life Cycle 
     
@@ -52,7 +53,6 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         bottomInfoView.alpha = 0
         bottomLayout.constant = -20
         view.layoutIfNeeded()
-        print(mapView.frame.origin.y)
     }
     
     
@@ -62,6 +62,7 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
         
         longGesture = UILongPressGestureRecognizer(target: self, action: "addAnnotation:")
         longGesture!.minimumPressDuration = 0.5
+        //longGesture.numberOfTapsRequired  = 1
         
         tapGesture = UITapGestureRecognizer(target: self, action: "removeAnnotation:")
         tapGesture.numberOfTapsRequired = 1
@@ -215,27 +216,44 @@ class TravelLocationsViewController: UIViewController, MKMapViewDelegate, UIGest
     // MARK: - Add and Remove Annotations
     
     func addAnnotation(gestureRecognizer:UIGestureRecognizer){
-        
-        if ( gestureRecognizer.state == UIGestureRecognizerState.Ended) {
-            return
+    
+        let state = gestureRecognizer.state
+      
+        if state == .Began {   // when the user first touch the map
+            
+            let touchPoint = gestureRecognizer.locationInView(mapView)
+            let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
+ 
+            droppedPin = MKPointAnnotation()
+            droppedPin.coordinate = newCoordinates
+            
+            dispatch_async(dispatch_get_main_queue(), {
+                self.mapView.addAnnotation(self.droppedPin)
+            })
+        }
+        else if state == .Changed {     
+            
+            let touchPoint = gestureRecognizer.locationInView(mapView)
+            let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
+            
+            dispatch_async(dispatch_get_main_queue(), {
+                self.droppedPin.coordinate = newCoordinates
+            })
+            
+        }
+        else if state == .Ended {  //  In this state the user has lifted the finger
+            
+            let dictionary:[String:AnyObject] = [
+                Pin.Keys.Latitude  :  Double(droppedPin.coordinate.latitude),
+                Pin.Keys.Longitude :  Double(droppedPin.coordinate.longitude)
+            ]
+            let pin = Pin(dictionary: dictionary, context: sharedContext)
+                
+            pins.append(pin)
+            CoreDataStackManager.sharedInstance().saveContext()
+            
         }
         
-        // Get a coordinate of long holded point on map
-        let touchPoint = gestureRecognizer.locationInView(mapView)
-        let newCoordinates = mapView.convertPoint(touchPoint, toCoordinateFromView: mapView)
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = newCoordinates
-        
-        let dictionary:[String:AnyObject] = [
-            Pin.Keys.Latitude  :  Double(newCoordinates.latitude),
-            Pin.Keys.Longitude :  Double(newCoordinates.longitude)
-        ]
-
-        mapView.addAnnotation(annotation)
-        let pin = Pin(dictionary: dictionary, context: sharedContext)
-        pins.append(pin)
-        
-        CoreDataStackManager.sharedInstance().saveContext()
     }
     
     func removeAnnotation(gestureRecognizer:UIGestureRecognizer) {
