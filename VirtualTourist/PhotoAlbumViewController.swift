@@ -87,56 +87,19 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         bottomButton.enabled = false
         
         if pin.pictures.isEmpty {
-        
-            let methodArguments:[String:String!] = [
-                "method": METHOD_NAME,
-                "api_key": API_KEY,
-                "bbox" :  createBoundingBoxString(longitude, latitude: latitude),
-                "safe_search" : SAFE_SEARCH,
-                "extras": EXTRAS,
-                "per_page": PER_PAGE,
-                "format": DATA_FORMAT,
-                "nojsoncallback": NO_JSON_CALLBACK
-            ]
-
-            FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
             
-                if let error = error {
-                    self.alertViewForError(error)
-                } else {
-                    
-                    if let photoDictionary = JSONResult["photos"] as? NSDictionary {
-                    
-                        if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
-                            
-                            if ( photoArray.count > 0 ) {
+            let methodArguments:[String:String!] = [
+                            "method": METHOD_NAME,
+                            "api_key": API_KEY,
+                            "bbox" :  createBoundingBoxString(longitude, latitude: latitude),
+                            "safe_search" : SAFE_SEARCH,
+                            "extras": EXTRAS,
+                            "per_page": PER_PAGE,
+                            "format": DATA_FORMAT,
+                            "nojsoncallback": NO_JSON_CALLBACK
+                        ]
 
-                                let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
-                                
-                                    let picture = Picture(dictionary:dictionary, context: self.sharedContext)
-                                    picture.pin = self.pin
-                                    return picture
-                                }
-                                
-                                dispatch_async(dispatch_get_main_queue()) {
-                                    self.bottomButton.enabled = true
-                                }
-                            } else {
-                                
-                                dispatch_async(dispatch_get_main_queue()) {
-                                    self.messageLabel.hidden = false
-                                    self.collectionView.backgroundColor = UIColor.whiteColor()
-                                    self.messageLabel.text = "This pin has no image"
-                                    self.bottomButton.enabled = true
-                                }
-
-                            }
-                            
-                            
-                        }
-                    }
-                }
-            }
+            fetchImages(methodArguments)
             
         } else  {
             // if a pin already has pictures in CoreData 
@@ -145,9 +108,52 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
 
     }
 
-   
+    // MARK : - Fetch Images
     
-    // MARK : - NSFetchedResultsController 
+    func fetchImages(methodArguments:[String:String!]) {
+    
+        
+        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
+            
+            if let error = error {
+                self.alertViewForError(error)
+            } else {
+                
+                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
+                    
+                    if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
+                        
+                        if ( photoArray.count > 0 ) {
+                            
+                            dispatch_async(dispatch_get_main_queue()) {
+                                
+                                let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
+                                    
+                                    let picture = Picture(dictionary:dictionary, context: self.sharedContext)
+                                    picture.pin = self.pin
+                                    return picture
+                                }
+                                
+                                self.bottomButton.enabled = true
+                            }
+                        } else {
+                            
+                            dispatch_async(dispatch_get_main_queue()) {
+                                self.messageLabel.hidden = false
+                                self.collectionView.backgroundColor = UIColor.whiteColor()
+                                self.messageLabel.text = "This pin has no image"
+                                self.bottomButton.enabled = true
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    
+    // MARK : - NSFetchedResultsController
     
     lazy var fetchedResultsController: NSFetchedResultsController = {
         
@@ -327,10 +333,14 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
                     
                     let image = UIImage(data:data)
                     
-                    // update the model, so that the information gets cashed
-                    pic.pinnedImage = image
+                    // The below line is moved inside of dispatch_async for thread-safe operation
+                    // pic.pinnedImage = image
                     
                     dispatch_async(dispatch_get_main_queue()) {
+                        
+                        // update the model, so that the information gets cashed
+                        pic.pinnedImage = image
+
                         cell.imageView!.image = image
                         cell.activityIndicator.stopAnimating()
                     }
@@ -379,6 +389,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
     func deleteAllPictures() {
         for pic in fetchedResultsController.fetchedObjects as! [Picture] {
             sharedContext.deleteObject(pic)
+            
+            // delete the underlying photos
+            pic.pinnedImage = nil
         }
         
         CoreDataStackManager.sharedInstance().saveContext()
@@ -396,6 +409,9 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         
         for pic in picturesToDelete {
             sharedContext.deleteObject(pic)
+            
+            // delete the underlying photos
+            pic.pinnedImage = nil
         }
         
         CoreDataStackManager.sharedInstance().saveContext()
@@ -403,7 +419,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
         selectedIndexes = [NSIndexPath]()
         updateBottomButton()
     }
-    
+ 
     // MARK : - Reload Pictures
     
     // Reload pictures from Flickr only if all pictures are deleted
@@ -429,47 +445,7 @@ class PhotoAlbumViewController: UIViewController, UICollectionViewDataSource, UI
             "nojsoncallback": NO_JSON_CALLBACK
         ]
         
-        FlickrClient.sharedInstance().taskForResource(methodArguments) { JSONResult, error in
-            
-            if let error = error {
-                self.alertViewForError(error)
-            } else {
-                
-                if let photoDictionary = JSONResult["photos"] as? NSDictionary {
-                    
-                    
-                    if let photoArray = photoDictionary["photo"] as? [[String:AnyObject]] {
-                        print("photoArray: \(photoArray.count)")
-                        
-                        if ( photoArray.count > 0 ) {
-                            
-                            let _ = photoArray.map() { (dictionary:[String:AnyObject])->Picture in
-                            
-                                let picture = Picture(dictionary:dictionary, context: self.sharedContext)
-                                picture.pin = self.pin
-                                return picture
-                            }
-                        
-                            dispatch_async(dispatch_get_main_queue()) {
-                                self.collectionView.reloadData()
-                                self.bottomButton.enabled = true
-                            }
-                        
-                            CoreDataStackManager.sharedInstance().saveContext()
-                        } else {
-                            dispatch_async(dispatch_get_main_queue()) {
-                                self.messageLabel.hidden = false
-                                self.collectionView.backgroundColor = UIColor.whiteColor()
-                                self.messageLabel.text = "This pin has no image"
-                                self.bottomButton.enabled = true
-                            }
-                        }
-                        
-                    }
-                }
-            }
-        }
-
+        fetchImages(methodArguments)
         
     }
     

@@ -15,7 +15,6 @@ class Picture : NSManagedObject {
         static let imagePath = "url_m"
     }
 
-    //@NSManaged var urlString: String
     @NSManaged var imagePath: String?
     @NSManaged var pin: Pin?
     
@@ -27,8 +26,7 @@ class Picture : NSManagedObject {
     
         let entity = NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
         super.init(entity:entity, insertIntoManagedObjectContext: context)
-                
-        //urlString = dictionary[Keys.UrlString] as! String
+            
         imagePath = dictionary[Keys.imagePath] as? String
     }
     
@@ -38,14 +36,14 @@ class Picture : NSManagedObject {
             let url = NSURL(fileURLWithPath: imagePath!)
             let fileName = url.lastPathComponent
             return FlickrClient.Caches.imageCache.imageWithIdentifier(fileName!)
-            // return FlickrClient.Caches.imageCache.imageWithIdentifier(imagePath)
+            
         }
         
         set {
             let url = NSURL(fileURLWithPath: imagePath!)
             let fileName = url.lastPathComponent
             FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: fileName!)
-            //FlickrClient.Caches.imageCache.storeImage(newValue, withIdentifier: imagePath!)
+            
         }
     }
 
