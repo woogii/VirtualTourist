@@ -1,2 +1,2 @@
 # VirtualTourist 
-This app allows users specify travel locations around the world, and create virtual photo albums for each location. The locations and photo albums will be persisted.
+This app allows users to tour the world without leaving the comforts of their couch. This app allows you to drop pins on a map and pull up Flickr images associated with that location. Locations and images are stored using Core Data. 
