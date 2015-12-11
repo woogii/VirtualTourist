@@ -22,7 +22,7 @@ This app allows users to tour the world without leaving the comforts of their co
 
 1) Clone the repository 
 ```
-$ git clone 
+$ git clone https://github.com/woogii/VirtualTourist.git
 $ cd VirtualTourist
 ```
 2) Open the workspace in XCode 
