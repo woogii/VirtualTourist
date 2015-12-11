@@ -17,6 +17,7 @@ This app allows users to tour the world without leaving the comforts of their co
 * The pin is draggable so that users can locate their pins wherever they want. 
 * Pictures are renewed every time users select the 'New Collection' button.
 * Once pictures are downloaded, they are permanently saved on the application. 
+
 # How to build 
 
 1) Clone the repository 
@@ -26,7 +27,7 @@ $ cd VirtualTourist
 ```
 2) Open the workspace in XCode 
 ```
-$ open VirtualTourist.xcodeproj
+$ open VirtualTourist.xcodeproj/
 ```
 3) Compile and run the app in your simulator 
 
