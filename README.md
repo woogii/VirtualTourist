@@ -29,7 +29,12 @@ $ cd VirtualTourist
 ```
 $ open VirtualTourist.xcodeproj/
 ```
-3) Compile and run the app in your simulator 
+3) Add your flick API key in FlickrClient.swift
+```
+// Add your API KEY to API_KEY constant variable  
+let API_KEY = ""
+```
+4) Compile and run the app in your simulator 
 
 # Compatibility 
 The code of this project works in Swift2.0, Xcode 7.0 and iOS9 
