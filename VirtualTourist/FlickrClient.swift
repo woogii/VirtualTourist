@@ -12,7 +12,7 @@ import Foundation
 let BASE_URL = "https://api.flickr.com/services/rest/"
 let METHOD_NAME = "flickr.photos.search"
 // Add your API KEY 
-let API_KEY = " "
+let API_KEY = "af1858a826c05ab811695383240bfa6a"
 let EXTRAS = "url_m"
 let SAFE_SEARCH = "1"
 let PER_PAGE = "21"

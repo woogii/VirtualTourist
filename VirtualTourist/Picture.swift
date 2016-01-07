@@ -26,8 +26,9 @@ class Picture : NSManagedObject {
     
         let entity = NSEntityDescription.entityForName("Picture", inManagedObjectContext: context)!
         super.init(entity:entity, insertIntoManagedObjectContext: context)
-            
+        
         imagePath = dictionary[Keys.imagePath] as? String
+        print(imagePath)
     }
     
     var pinnedImage: UIImage? {
