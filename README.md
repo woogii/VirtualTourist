@@ -29,7 +29,7 @@ $ cd VirtualTourist
 ```
 $ open VirtualTourist.xcodeproj/
 ```
-3) Add your flick API key in FlickrClient.swift
+3) Add your flick API key in Secret.swift
 ```
 // Add your API KEY to API_KEY constant variable  
 let API_KEY = ""
