@@ -1,5 +1,5 @@
 # VirtualTourist 
-This app allows users to tour the world without leaving the comforts of their couch. The app also allows you to drop pins on a map and pull up Flickr images associated with that location. Locations and images are stored using Core Data. 
+This app allows users to tour the world without leaving the comforts of their couch. The app enables you to drop pins on a map and pull up Flickr images associated with that location. Locations and images are stored using Core Data. 
 
 # Features 
 
