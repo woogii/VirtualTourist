@@ -3,20 +3,24 @@ This app allows users to tour the world without leaving the comforts of their co
 
 # Features 
 
-* Users can drop the pin on the map where they want to virtually explore through the picture albums. They can delete the pin if they lose interest in the place where the pin is located. 
+* Users can drop the pin on the map where they want to virtually explore through the picture albums. The pin is draggable so that users can locate their pins wherever they want. They can delete the pin if they lose interest in the place where the pin is located. 
 
 
 ![Map DropPin](ScreenShot/Map_DropPin.PNG) 
 ![Map DeletePin](ScreenShot/Map_DeletePin.PNG)
 
-* When users tap a pin, the app changes the screen and displays pictures downloaded from Flickr. Users can simply delete any picture by tapping it on the screen. What is more, they are able to see another set of pictures by pushing the 'New Collection' button on the bottom of the screen. 
+* When users tap the pin, the app changes the screen and displays pictures downloaded from Flickr. Users can simply delete any picture by tapping it on the screen. What is more, they are able to see another set of pictures by pushing the 'New Collection' button on the bottom of the screen. 
 
-![Album Display](ScreenShot/AlbumDisplay.PNG)
-![Album Delete](ScreenShot/AlbumDelete.PNG)
+![Album Display](ScreenShot/VT_Display.PNG)
+![Album Delete](ScreenShot/VT_Selected.PNG)
 
-* The pin is draggable so that users can locate their pins wherever they want. 
 * Pictures are renewed every time users select the 'New Collection' button.
 * Once pictures are downloaded, they are permanently saved on the application. 
+
+![Album Delete](ScreenShot/VT_Download.PNG)
+![Album Display](ScreenShot/VT_Deleted.PNG)
+
+
 
 # How to build 
 
